@@ -123,6 +123,11 @@ export interface FetchRecordOptions {
    * the SDK's own retrieval fails.
    */
   retrievalUrl?: string | null
+  /**
+   * The data set holding the piece. When no `retrievalUrl` was supplied, the
+   * fallback asks this data set's provider for one before giving up.
+   */
+  dataSetId?: number
 }
 
 /**
@@ -150,7 +155,10 @@ export async function fetchRecord(
   try {
     return extractFileFromCar(await synapse.storage.download({ pieceCid }), expectedCid)
   } catch (cause) {
-    const url = options.retrievalUrl
+    let url = options.retrievalUrl
+    if ((url == null || url === '') && options.dataSetId != null) {
+      url = (await getStorageStatus(synapse, { pieceCid, dataSetId: options.dataSetId }).catch(() => null))?.retrievalUrl
+    }
     if (url == null || url === '') throw cause
 
     const response = await fetch(url, { signal: AbortSignal.timeout(FALLBACK_TIMEOUT_MS) })

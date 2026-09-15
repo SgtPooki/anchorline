@@ -187,7 +187,7 @@ export async function readAnchoredManifest(
   anchor: ManifestVersion,
   assetId: string
 ): Promise<Manifest> {
-  const bytes = await fetchRecord(synapse, anchor.manifestPieceCid, anchor.manifestCid)
+  const bytes = await fetchRecord(synapse, anchor.manifestPieceCid, anchor.manifestCid, { dataSetId: anchor.dataSetId })
   const recomputed = await computeFileCid(bytes)
   if (recomputed !== anchor.manifestCid) {
     throw new VerificationError(
